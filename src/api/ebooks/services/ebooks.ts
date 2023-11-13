@@ -1,0 +1,5 @@
+/**
+ * ebooks service
+ */
+
+export default () => ({});

@@ -362,6 +362,45 @@ export interface AdminTransferTokenPermission extends Schema.CollectionType {
   };
 }
 
+export interface ApiBookInfoBookInfo extends Schema.CollectionType {
+  collectionName: 'book_infos';
+  info: {
+    singularName: 'book-info';
+    pluralName: 'book-infos';
+    displayName: 'BookInfo';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    coverUrl: Attribute.String;
+    title: Attribute.String;
+    author: Attribute.String;
+    catalog: Attribute.String;
+    description: Attribute.Text;
+    press: Attribute.String;
+    publishTime: Attribute.Date;
+    ISBN: Attribute.String;
+    price: Attribute.Decimal;
+    docType: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::book-info.book-info',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::book-info.book-info',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface PluginUploadFile extends Schema.CollectionType {
   collectionName: 'files';
   info: {
@@ -687,6 +726,7 @@ declare module '@strapi/types' {
       'admin::api-token-permission': AdminApiTokenPermission;
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
+      'api::book-info.book-info': ApiBookInfoBookInfo;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;

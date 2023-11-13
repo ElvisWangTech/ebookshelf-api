@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "book_infos",
+  "info": {
+    "singularName": "book-info",
+    "pluralName": "book-infos",
+    "displayName": "BookInfo"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "coverUrl": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "catalog": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "press": {
+      "type": "string"
+    },
+    "publishTime": {
+      "type": "date"
+    },
+    "ISBN": {
+      "type": "string"
+    },
+    "price": {
+      "type": "decimal"
+    },
+    "docType": {
+      "type": "string"
+    }
+  }
+}
