@@ -2,12 +2,23 @@
  * A set of functions called "actions" for `ebooks`
  */
 
+import { Context, Next } from "koa";
+
 export default {
-  // exampleAction: async (ctx, next) => {
-  //   try {
-  //     ctx.body = 'ok';
-  //   } catch (err) {
-  //     ctx.body = err;
-  //   }
-  // }
+  getContent: async (ctx: Context, next: Next) => {
+    try {
+      const data = await strapi.service("api::ebooks.ebooks").getContent(ctx);
+      ctx.body = data;
+    } catch (err) {
+      ctx.body = err;
+    }
+  },
+  postContent: async (ctx: Context, next: Next) => {
+    try {
+      const data = await strapi.service("api::ebooks.ebooks").postContent(ctx);
+      ctx.body = data;
+    } catch (err) {
+      ctx.body = err;
+    }
+  }
 };
