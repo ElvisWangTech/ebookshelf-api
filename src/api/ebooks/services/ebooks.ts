@@ -7,15 +7,6 @@ import path from "path"
 import * as cheerio from 'cheerio';
 import type { Context } from 'koa';
 
-export default () => ({
-    getContent: async (ctx: Context) => {
-        return await handleRequest(ctx, 'GET')
-    },
-    postContent: async (ctx: Context) => {
-        return await handleRequest(ctx, 'POST', true)
-    }
-});
-
 const MIME_TYPE: Record<string, string> = {
     'jpeg': 'image/jpeg',
     'jpg': 'image/jpeg',
@@ -76,10 +67,10 @@ const MIME_TYPE: Record<string, string> = {
     return MIME_TYPE[ext] || ''
   }
 
-async function handleRequest(ctx: Context, method: string, jsonfy = false) {
+async function handleRequest(ctx: any, method: string, jsonfy = false) {
     let url = '';
     if (method === 'POST') {
-      url = ctx.params.url;
+      url = ctx.request.body.url;
     } else {
       url = ctx.request.query.url as string || ''
     }
@@ -103,3 +94,13 @@ async function handleRequest(ctx: Context, method: string, jsonfy = false) {
       return data;
     }
   }
+
+  export default () => ({
+    getContent: async (ctx: Context) => {
+        return await handleRequest(ctx, 'GET')
+    },
+    postContent: async (ctx: Context) => {
+        console.log("handle postContent")
+        return await handleRequest(ctx, 'POST', true)
+    }
+});
