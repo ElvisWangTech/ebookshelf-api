@@ -2,7 +2,7 @@
  * ebooks service
  */
 
-import { readFileSync } from 'fs'
+import { readFileSync, statSync, createReadStream } from 'fs'
 import path from "path"
 import * as cheerio from 'cheerio';
 import type { Context } from 'koa';
@@ -40,6 +40,20 @@ const MIME_TYPE: Record<string, string> = {
     })
     return $.html()
   }
+
+  function getRange(range: string | null, total: number) {
+    if (!range) {
+      return {
+        start: 0,
+        end: total - 1
+      }
+    }
+    const ranges = range.split('=')[1].split('-');
+    return {
+      start: parseInt(ranges[0]),
+      end: Math.min(parseInt(ranges[1]), total - 1),
+    }
+  }
   
   function readFile(absPath: string) {
     const lowcasePath = absPath.toLowerCase()
@@ -49,6 +63,15 @@ const MIME_TYPE: Record<string, string> = {
       return readFileSync(absPath, 'utf-8')
     } else {
       return readFileSync(absPath)
+    }
+  }
+
+  function readFileSize(absPath: string) {
+    try {
+      const stats = statSync(absPath)
+      return stats.size
+    } catch (error) {
+      return 0
     }
   }
   
@@ -67,7 +90,7 @@ const MIME_TYPE: Record<string, string> = {
     return MIME_TYPE[ext] || ''
   }
 
-async function handleRequest(ctx: any, method: string, jsonfy = false) {
+  async function handleRequest(ctx: any, method: string, jsonfy = false) {
     let url = '';
     if (method === 'POST') {
       url = ctx.request.body.url;
@@ -79,16 +102,39 @@ async function handleRequest(ctx: any, method: string, jsonfy = false) {
     const bookPath = getBookPath(url)
     const baseUrl = path.dirname(url)
     const absPath = path.join(process.cwd(), '../../nas/share', 'ebooks', bookPath)
+    console.log('headers', ctx.request.headers)
+    const range = ctx.request.headers['range']
+    console.log('range: ' + range)
+    // 如果是pdf，采取分片加载策略
+    const total = readFileSize(absPath)
+    let data = null, dataStream = null;
+    let { start, end } = getRange(range, total);
     console.log('read ebook: ' + absPath)
-  
-    const data = readFile(absPath)
-    if (jsonfy) {
+    if (range) {
+      dataStream = createReadStream(absPath, { start, end });
+    } else if (mimetype !== MIME_TYPE['pdf']) { // 不是pdf，直接读整个文件
+      data = readFile(absPath)
+    } else {
+      // end = Math.min(end, 0)
+      dataStream = createReadStream(absPath, { start, end: 0 });
+    }
+    console.log(`dataStream: ${!!dataStream} data: ${!!data} start: ${start} end: ${end}`)
+    if (jsonfy && data) {
       const res = {
         code: 200,
         message: 'OK',
         data: mimetype === MIME_TYPE['html'] && typeof data === 'string' ? replaceHref(data, baseUrl): data
       }
       return res;
+    } else if (dataStream) {
+      ctx.res.setHeader('Content-Type', mimetype)
+      ctx.res.setHeader('Accept-Ranges', 'bytes')
+      ctx.res.setHeader('Access-Control-Expose-Headers', 'Accept-Ranges,Content-Range')
+      ctx.res.setHeader('Content-Encoding', 'identity')
+      ctx.res.setHeader('Content-Length', (end - start + 1) + '')
+      ctx.res.setHeader('Content-Range', `bytes ${start}-${end}/${total}`)
+      ctx.status = 206
+      return dataStream;
     } else {
       ctx.res.setHeader('Content-Type', mimetype)
       return data;
