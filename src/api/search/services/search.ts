@@ -14,7 +14,12 @@ export default () => ({
     getByMeiliSearch: async (ctx: Context) => {
         const searchText = ctx.request.query.key as string || ''
         console.log('search for : ' + searchText)
-        const response = client.index('book-info').search(searchText)
-        return response
+        const response = await client.index('book-info').search(searchText)
+        const res = {
+          code: 200,
+          message: 'OK',
+          data: response
+        }
+        return res
     },
 });
