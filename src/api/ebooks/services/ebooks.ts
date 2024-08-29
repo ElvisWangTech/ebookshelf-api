@@ -31,12 +31,22 @@ const MIME_TYPE: Record<string, string> = {
     const $ = cheerio.load(htmlStr);
     $("a[href]").each((index, link) => {
       const $link = $(link);
-      $link.attr('href', `/reader?url=${baseUrl + '/' + $link.attr('href')}`)
+      // $link.attr('href', `/reader?url=${baseUrl + '/' + $link.attr('href')}`)
+      $link.attr('href', `javascript: parent.getBookByUrl("${baseUrl + '/' + $link.attr('href')}")`)
     })
     // img的src处理
     $("img").each((index, img) => {
       const $img = $(img);
       $img.attr('src', `/api/ebooks?url=${baseUrl + '/' + $img.attr('src')}`)
+    })
+    // 把段落进一步按句子拆分
+    $("p").each((index, p) => {
+      const $p = $(p);
+      const text = $p.text();
+      if (text.indexOf('。') >= 0) {
+        const sentences = text.split("。").filter(s => s.length > 0).map(s => "<span class='sentence'>" + s + "。</span>")
+        $p.html(sentences.join(''))
+      }
     })
     return $.html()
   }
